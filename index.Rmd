@@ -1,0 +1,99 @@
+---
+title: "Homework3"
+author: "Prajay Pandiri"
+date: "2025-09-25"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Libraries
+
+```{r}
+library(tidyverse)
+library(colorfindr)
+```
+
+## Reading in the data
+
+```{r}
+data = read.csv('homework3_data.csv')
+```
+
+## Should the company commit to redesigning the web site based on the criteria for success that they laid out?
+
+My Reccomendation is that the company should commit to redesigning the website based on the criteria that it would increase sales.
+
+### Getting colors
+
+```{r colors}
+stripe <- get_colors("stripe.png")
+palette <- make_palette(stripe)
+palette
+```
+I am choosing colors #E05559 and #A35BDA from Stripe color palette.
+
+
+### Graphical Representation 1
+
+Boxplot
+
+```{r}
+data %>%
+  mutate(design = factor(design, 
+                         labels = c("Current","Redesign"))) %>%
+  ggplot(aes(x = design, y = sales, fill = design)) +
+  geom_boxplot() +
+  scale_fill_manual(values = c("#E05559", "#A35BDA")) +
+  labs(title = "Boxplot comparing Sales per Customer by Website Design",
+       x = "Website", y = "Sales")
+```
+The boxplot distribution shows that the distribution of sales for the redesigned website is in general higher than the one for the current website.
+
+### Graphical Representation 2
+
+Histogram
+
+```{r}
+data %>%
+  mutate(design = factor(design, 
+                         labels = c("Current","Redesign"))) %>%
+  ggplot(aes(x = sales, fill = design)) +
+  geom_density(alpha = 0.4) +
+  scale_fill_manual(values = c("#E05559", "#A35BDA")) +
+  labs(title = "Boxplot comparing Sales per Customer by Website Design", x = "Sales ($)", y = "Density", fill = "Design")
+```
+The density plot suggest that the redesign leads to higher typical sales per customer when compared to the current design similar to the boxplot.
+
+### Estimation of how much sales will increase/decrease if the redesign is done;
+
+```{r}
+mean_diff <- data %>%
+  mutate(design = factor(design,
+                         labels = c("Current","Redesign"))) %>%
+  summarise(
+    mean_current  = mean(sales[design == "Current"]),
+    mean_redesign = mean(sales[design == "Redesign"]),
+    mean_diff = mean_redesign - mean_current
+  )
+mean_diff
+```
+
+The mean difference in sales shows that sales will increase by approximately 3.66 if the redesign is done.
+
+
+### Addressing the question of whether the redesign will lead to an average increase in sales of at least $1.80 per customer
+
+```{r}
+cur_sales  <- data$sales[data$design == 0]
+re_sales <- data$sales[data$design == 1]
+t.test(re_sales, cur_sales,
+       alternative = "greater", 
+       mu = 1.80,
+       var.equal = FALSE)
+```
+This means we are 95% confident that the true difference in means is at least $2.92 which is greater than \$1.80.
